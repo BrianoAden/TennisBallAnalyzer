@@ -5,7 +5,7 @@
 #include "HX711_ADC.h"
 #include "LiquidCrystal.h"
 
-//https://github.com/bogde/HX711 documentation for library!
+//https://github.com/olkal/HX711_ADC documentation for library!
 //credits to DIYEngineers for helping with calibration https://www.diyengineers.com/2022/05/19/load-cell-with-hx711-how-to-use-with-examples/
 //credits to https://electricdiylab.com/how-to-connect-optical-rotary-encoder-with-arduino/ for rotary encoder help
 
@@ -17,11 +17,19 @@ const int LOADCELL_DOUT_PIN = 14;
 const int LOADCELL_SCK_PIN = 15;
 float data = 0;
 
+//calibrate load cell (value obtained from load_cell_calibration.ino)
+const float calibrationValue = 213.32;
+
 
 //Rotary Encoder constants
 volatile long temp, counter = 0;     //This variable will increase or decrease depending on the rotation of encoder
-float PINION_DIAMETER = 19.5;        //mm
-float PINION_CIRCUMFERENCE = 61.26;  //mm
+//float PINION_DIAMETER = 19.5;        //mm
+//float PINION_CIRCUMFERENCE = 61.26;  //mm
+float PINION_DIAMETER = 27.3;        //mm
+float PINION_CIRCUMFERENCE = 85.765;  //mm
+
+const int buttonPin = 8; //pin to read state of Button
+int buttonState; 
 
 
 HX711_ADC LoadCell(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
@@ -33,24 +41,22 @@ void setup() {
 
   //set baudrate
   Serial.begin(115200);
-  Serial.print("Booting...");
+  lcd.clear();
+  lcd.print("Booting...");
 
   //initilaize load cell
   LoadCell.begin();
 
-  //zero out load cell. VERY important.
-  unsigned long stabilizingtime = 2000;
-  LoadCell.start(stabilizingtime, true);
+  loadCellCalibration(); //calibrate the loadcell
 
-  //calibrate load cell (value obtained from load_cell_calibration.ino)
-  float calibrationValue = 213.32;
-  LoadCell.setCalFactor(calibrationValue);
-
-  Serial.println("Booting complete");
+  lcd.clear();
+  lcd.print("Booting complete");
 
   pinMode(2, INPUT_PULLUP);  // internal pullup input pin 2
 
   pinMode(3, INPUT_PULLUP);  // internal pullup input pin 3
+
+  pinMode(buttonPin, INPUT); //initialize buttonPin to read inputs
 
   //Setting up interrupt
   //A rising pulse from encodenren activated ai0(). AttachInterrupt 0 is DigitalPin nr 2 on moust Arduino.
@@ -77,7 +83,8 @@ void loop() {
       //Print to Serial Monitor
       Serial.print("Mass(g):");
       Serial.println(data);
-      //testing yields 1200p P/R
+
+      //testing yields 1200p P/R for our rotary encoder
       if (counter != temp) {
         Serial.println(counter);
         temp = counter;
@@ -89,10 +96,39 @@ void loop() {
       lcd.print("Force(N):" + String(int(force)));
       lcd.setCursor(0, 1);  // set the cursor to column 0, line 1
       lcd.print("Position:" + String((counter/1200.0)*PINION_CIRCUMFERENCE));  //print out distance traveled in mm
+
       newDataReady = 0;
       t = millis();
     }
   }
+  buttonState = digitalRead(buttonPin);
+  if (buttonState == HIGH)
+    rotaryEncoderReset();
+}
+
+/*
+* Helper function to reset and calibrate load cell. Probably not as necessary as rotary encoder reset since the 
+* Load cell zeroes itself out anyway.
+*/
+
+void loadCellCalibration(){
+
+  //zero out load cell. VERY important.
+  unsigned long stabilizingtime = 2000;
+  LoadCell.start(stabilizingtime, true);
+
+  LoadCell.setCalFactor(calibrationValue);
+}
+
+/*
+* Helper functoin to reset the rotary encoder. This will likely only occur at a user's button press. The purpose is to
+* help with measurements of multiple balls without having to manually restart Arduino. 
+*/
+
+void rotaryEncoderReset(){
+
+  counter = 0;
+  temp = 0; 
 }
 
 void ai0() {
