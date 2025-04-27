@@ -2,22 +2,22 @@
 #if defined(ESP8266)|| defined(ESP32) || defined(AVR)
 #include <EEPROM.h>
 #endif
- //calibration value = 213.32
+
 //pins:
 const int HX711_dout = 14; //mcu > HX711 dout pin
 const int HX711_sck = 15; //mcu > HX711 sck pin
- 
+
 //HX711 constructor:
 HX711_ADC LoadCell(HX711_dout, HX711_sck);
- 
+
 const int calVal_eepromAdress = 0;
 unsigned long t = 0;
- 
+
 void setup() {
-  Serial.begin(115200); delay(10);
+  Serial.begin(57600); delay(10);
   Serial.println();
   Serial.println("Starting...");
- 
+
   LoadCell.begin();
   //LoadCell.setReverseOutput(); //uncomment to turn a negative output value to positive
   unsigned long stabilizingtime = 2000; // preciscion right after power-up can be improved by adding a few seconds of stabilizing time
@@ -34,14 +34,14 @@ void setup() {
   while (!LoadCell.update());
   calibrate(); //start calibration procedure
 }
- 
+
 void loop() {
   static boolean newDataReady = 0;
   const int serialPrintInterval = 0; //increase value to slow down serial print activity
- 
+
   // check for new data/start next conversion:
   if (LoadCell.update()) newDataReady = true;
- 
+
   // get smoothed value from the dataset:
   if (newDataReady) {
     if (millis() > t + serialPrintInterval) {
@@ -52,7 +52,7 @@ void loop() {
       t = millis();
     }
   }
- 
+
   // receive command from serial terminal
   if (Serial.available() > 0) {
     char inByte = Serial.read();
@@ -60,21 +60,21 @@ void loop() {
     else if (inByte == 'r') calibrate(); //calibrate
     else if (inByte == 'c') changeSavedCalFactor(); //edit calibration value manually
   }
- 
+
   // check if last tare operation is complete
   if (LoadCell.getTareStatus() == true) {
     Serial.println("Tare complete");
   }
- 
+
 }
- 
+
 void calibrate() {
   Serial.println("***");
   Serial.println("Start calibration:");
   Serial.println("Place the load cell an a level stable surface.");
   Serial.println("Remove any load applied to the load cell.");
   Serial.println("Send 't' from serial monitor to set the tare offset.");
- 
+
   boolean _resume = false;
   while (_resume == false) {
     LoadCell.update();
@@ -89,10 +89,10 @@ void calibrate() {
       _resume = true;
     }
   }
- 
+
   Serial.println("Now, place your known mass on the loadcell.");
   Serial.println("Then send the weight of this mass (i.e. 100.0) from serial monitor.");
- 
+
   float known_mass = 0;
   _resume = false;
   while (_resume == false) {
@@ -106,17 +106,17 @@ void calibrate() {
       }
     }
   }
- 
+
   LoadCell.refreshDataSet(); //refresh the dataset to be sure that the known mass is measured correct
   float newCalibrationValue = LoadCell.getNewCalibration(known_mass); //get the new calibration value
- 
+
   Serial.print("New calibration value has been set to: ");
   Serial.print(newCalibrationValue);
   Serial.println(", use this as calibration value (calFactor) in your project sketch.");
   Serial.print("Save this value to EEPROM adress ");
   Serial.print(calVal_eepromAdress);
   Serial.println("? y/n");
- 
+
   _resume = false;
   while (_resume == false) {
     if (Serial.available() > 0) {
@@ -135,7 +135,7 @@ void calibrate() {
         Serial.print(" saved to EEPROM address: ");
         Serial.println(calVal_eepromAdress);
         _resume = true;
- 
+
       }
       else if (inByte == 'n') {
         Serial.println("Value not saved to EEPROM");
@@ -143,14 +143,14 @@ void calibrate() {
       }
     }
   }
- 
+
   Serial.println("End calibration");
   Serial.println("***");
   Serial.println("To re-calibrate, send 'r' from serial monitor.");
   Serial.println("For manual edit of the calibration value, send 'c' from serial monitor.");
   Serial.println("***");
 }
- 
+
 void changeSavedCalFactor() {
   float oldCalibrationValue = LoadCell.getCalFactor();
   boolean _resume = false;
