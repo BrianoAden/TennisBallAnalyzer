@@ -47,21 +47,21 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 
 void setup() {
   //start the lcd
-  //lcd.init();
-  //lcd.backlight();
+  lcd.init();
+  lcd.backlight();
 
   //set baudrate
   Serial.begin(115200);
-  //lcd.clear();
-  //lcd.print("Booting...");
+  lcd.clear();
+  lcd.print("Booting...");
 
   //initilaize load cell
   LoadCell.begin();
 
   loadCellCalibration();  //calibrate the loadcell
 
-  //lcd.clear();
-  //lcd.print("Booting complete");
+  lcd.clear();
+  lcd.print("Booting complete");
 
   pinMode(ENCODER_A, INPUT_PULLUP);  // internal pullup input pin 2
 
@@ -91,42 +91,45 @@ void loop() {
 
       if (flag == 0){
         //LCD Print
-        //lcd.clear();          // Clears the display
-        //lcd.setCursor(0, 0);  // set the cursor to column 0, line 0
-        //lcd.print("Force(N):" + String(int(force)));
-        //lcd.setCursor(0, 1);  // set the cursor to column 0, line 1
+        lcd.clear();          // Clears the display
+        lcd.setCursor(0, 0);  // set the cursor to column 0, line 0
+        lcd.print("Force(N):" + String(int(force)));
+        lcd.setCursor(0, 1);  // set the cursor to column 0, line 1
         displacement = -((encoder_value / 1200.0) * PINION_CIRCUMFERENCE);
-        //lcd.print("Position:" + String(displacement));  //print out distance traveled in mm
+        lcd.print("Position:" + String(displacement));  //print out distance traveled in mm
+        Serial.println("Position: " + String(displacement)); 
         if (force == 80) {
           forward_deformation = displacement;
           digitalWrite(14, HIGH);
-          Serial.print(",");
-          Serial.print(displacement);
+          // Serial.print(",");
+          // Serial.print(displacement);
           flag = 1;
         }
       }else{
         delay(1000);
-        //lcd.clear();
+        lcd.clear();
         stiff_co = (80)/(displacement/10);
         if ((stiff_co > 108) && (stiff_co < 148)){
-          //lcd.print("Competitive");
-          Serial.println("Competitive");
+          lcd.print("Competitive");
+          //Serial.println("Competitive");
+        }else if ((stiff_co <= 108) && (stiff_co > 86)){
+          lcd.print("Practice!");
+          // Serial.println("Not Competitive");
         }else{
-          //lcd.print("Not Competitive");
-          Serial.println("Not Competitive");
+          lcd.print("Recycle!");
         }
-        //lcd.setCursor(0,1);
-        //lcd.print("FD: " + String(forward_deformation) + "mm");
-        Serial.println(stiff_co);
+        lcd.setCursor(0,1);
+        lcd.print("FD: " + String(forward_deformation) + "mm");
+        //Serial.println(stiff_co);
       }
 
       //Print to Serial Monitor
       // Serial.print("Mass(g):");
       // Serial.println(data);
 
-      // // //testing yields 1200p P/R for our rotary encoder
-      // if (encoder_value != temp)
-      //   Serial.println(encoder_value);
+      // // //testing yields S1200p P/R for our rotary encoder
+      if (encoder_value != temp)
+        Serial.println(encoder_value);
 
 
       newDataReady = 0;

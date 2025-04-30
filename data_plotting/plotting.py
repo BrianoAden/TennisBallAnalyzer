@@ -13,15 +13,21 @@ import matplotlib.pyplot as plt
 #stiff_co = 80/(data[-1]/10)
 #print(stiff_co)
 
-ball_num = range(1, 21)
-bounce_test = [54, 49, 55, 54, 55, 45, 54.5, 55, 57, 55, 51.5, 58, 54, 54, 55, 57, 60, 52, 54, 53.5, 51]
-stiffness_test = [9.51,9.51,8.22,9.36,9.15,8,7.58,8.93,8.58,10.15,8.15,9.22,8.43,6.72,9.15,8.86,9.58,8.36,7.86,7.50,7.79]
+ball_num = range(1, 25)
+bounce_test = [54, 56, 54, 55, 55, 54, 55, 56, 54, 56, 53, 52, 54, 52, 58, 59, 48, 55, 56, 50, 55, 56, 56, 53, 52]
+stiffness_test = [6.73, 6.37, 6.94, 5.95, 5.6, 7.15, 6.52, 6.16, 7.01, 7.3, 6.16, 6.45, 7.09, 8.57, 6.94, 6.16, 9.43, 7.22, 6.66, 7.01, 6.45, 7.01, 7.35, 6.02, 9.03]
 
 disp_upper_bound = [108.1081081]*30
 disp_lower_bound = [142.8571429]*30
 
+practice_disp_lower_bound = [108.1081081]*30
+practice_disp_upper_bound = [86]*30
+
 bounce_lower_bound = [53] * 80
 bounce_upper_bound = [58] * 80
+
+practice_bounce_lower_bound = [50] * 80
+practice_bounce_upper_bound = [53] * 80
 
 
 for ball in range(len(stiffness_test)):
@@ -31,13 +37,19 @@ print(stiffness_test)
 
 
 plt.plot(bounce_test, stiffness_test, "o", color = 'b')
-plt.xlim(50,63)
+plt.xlim(47,63)
 plt.ylim(75,150)
 plt.plot(range(35, 65), disp_lower_bound, 'b', linestyle='dashed')
 plt.plot(range(35, 65), disp_upper_bound, 'b', linestyle='dashed')
+plt.plot(range(35, 65), practice_disp_lower_bound, 'g', linestyle='dashed')
+plt.plot(range(35, 65), practice_disp_upper_bound, 'g', linestyle='dashed')
 plt.plot(bounce_lower_bound, range(75, 155), 'r', linestyle='dashed')
 plt.plot(bounce_upper_bound, range(75, 155), 'r', linestyle='dashed')
+plt.plot(practice_bounce_lower_bound, range(75, 155), 'm', linestyle='dashed')
+plt.plot(practice_bounce_upper_bound, range(75, 155), 'm', linestyle='dashed')
 plt.fill_between([53,58], [108.1081081], [142.8571429], color='green', alpha=0.3, label='Competitive')
+plt.fill_between([50,53], [86], [108.1081081], color='yellow', alpha=0.3, label='Practice')
+plt.fill_between([45,50], [70], [86], color='red', alpha=0.3, label='Recycle')
 plt.annotate("ITF Max Stiffness", xy=(63, 142.8571429), xytext=(63.2, 110), fontsize=10)
 plt.annotate('ITF Min Stiffness', xy=(63, 108.1081081), xytext=(63.2, 144), fontsize=10)
 plt.annotate('ITF Max Bounce Height', xy=(58, 150), xytext=(58.3, 147), fontsize=10)
